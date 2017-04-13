@@ -1,16 +1,19 @@
 function GameManager(size, InputManager, Actuator, StorageManager) {
   this.size           = size; // Size of the grid
-  this.inputManager   = new InputManager;
-  this.storageManager = new StorageManager;
-  this.actuator       = new Actuator;
 
-  this.startTiles     = 2;
+  if (InputManager != null && Actuator != null && StorageManager != null) {
+    this.inputManager   = new InputManager(this);
+    this.storageManager = new StorageManager;
+    this.actuator       = new Actuator;
 
-  this.inputManager.on("move", this.move.bind(this));
-  this.inputManager.on("restart", this.restart.bind(this));
-  this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+    this.startTiles     = 2;
 
-  this.setup();
+    this.inputManager.on("move", this.move.bind(this));
+    this.inputManager.on("restart", this.restart.bind(this));
+    this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+
+    this.setup();
+  }
 }
 
 // Restart the game
@@ -270,3 +273,18 @@ GameManager.prototype.tileMatchesAvailable = function () {
 GameManager.prototype.positionsEqual = function (first, second) {
   return first.x === second.x && first.y === second.y;
 };
+
+GameManager.prototype.clone = function() {
+  let clone = new GameManager(4, null, null, null);
+  this.storageManager.setGameState(this.serialize());
+  let previousState = this.storageManager.getGameState();
+
+  clone.grid        = new Grid(this.grid.size,
+                               previousState.grid.cells); // Reload grid
+  clone.score       = this.score;
+  clone.over        = this.over;
+  clone.won         = this.won;
+  clone.keepPlaying = this.keepPlaying;
+
+  return clone;
+}

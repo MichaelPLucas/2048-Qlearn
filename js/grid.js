@@ -26,6 +26,7 @@ Grid.prototype.fromState = function (state) {
 
     for (var y = 0; y < this.size; y++) {
       var tile = state[x][y];
+      console.log(tile);
       row.push(tile ? new Tile(tile.position, tile.value) : null);
     }
   }
@@ -115,3 +116,29 @@ Grid.prototype.serialize = function () {
     cells: cellState
   };
 };
+
+Grid.prototype.toString = function() {
+  let result = "[";
+
+  for (let i = 0; i < this.size; i++) {
+    result += "[";
+
+    for (let j = 0; j < this.size; j++) {
+      if (this.cells[i][j]) {
+        result += this.cells[i][j].value;
+      } else {
+        result += "null";
+      }
+
+      if (j != this.size - 1) {
+       result += ", ";
+      }
+    }
+
+    if (i != this.size - 1) {
+      result += "], ";
+    }
+  }
+
+  return result;
+}
