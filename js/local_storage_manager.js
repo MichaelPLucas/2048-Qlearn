@@ -21,6 +21,7 @@ window.fakeStorage = {
 function LocalStorageManager() {
   this.bestScoreKey     = "bestScore";
   this.gameStateKey     = "gameState";
+  this.QKey             = "Qdata";
 
   var supported = this.localStorageSupported();
   this.storage = supported ? window.localStorage : window.fakeStorage;
@@ -61,3 +62,12 @@ LocalStorageManager.prototype.setGameState = function (gameState) {
 LocalStorageManager.prototype.clearGameState = function () {
   this.storage.removeItem(this.gameStateKey);
 };
+
+LocalStorageManager.prototype.setQData = function(Qdata) {
+  this.storage.setItem(this.QKey, JSON.stringify(Qdata));
+}
+
+LocalStorageManager.prototype.getQData = function(Qdata) {
+  let Qjson = this.storage.getItem(this.QKey);
+  return Qjson ? JSON.parse(Qjson) : null;
+}

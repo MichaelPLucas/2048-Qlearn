@@ -1,7 +1,8 @@
 function Agent(g) {
 	this.game = g;
 	this.events = {};
-	this.Q = {};
+	let prevQ = this.game.storageManager.getQData();
+	this.Q = prevQ ? prevQ : {};
 	this.gamma = 0.7;
 
 	this.start();
@@ -26,60 +27,36 @@ Agent.prototype.emit = function (event, data) {
 Agent.prototype.start = function() {
 	var self = this;
 
-	document.addEventListener("keydown", function(event) {
-		if (event.which === 82) {
-			event.preventDefault();
-      		self.emit("restart");
-    	}
-
-		if (event.which === 32) {
-			event.preventDefault();
-
-			if (self.game.isGameTerminated()) {
-				self.emit("restart");
-				return;
-			}
-
-			/*
-			let rand = Math.random();
-
-			let move;
-			if (rand < self.pm1) {
-				move = 0;
-			} else if (rand < self.pm1 + self.pm2) {
-				move = 1;
-			} else if (rand < self.pm1 + self.pm2 + self.pm3) {
-				move = 2;
-			} else {
-				move = 3;
-			}
-			*/
-
-			let move = self.Qlearn();
-			console.log(move);
-
-			self.emit("move", move);
+    setInterval(function() {
+		if (self.game.isGameTerminated()) {
+			self.emit("restart");
+			return;
 		}
-	});
+
+		let move = self.Qlearn();
+		self.game.storageManager.setQData(self.Q);
+
+		self.emit("move", move);
+	}, 10);
 };
 
 Agent.prototype.Qlearn = function() {
 	let best = -1;
 	let bestQ = -1;
-	for (let action = 0; action < 4; action++) {
-		if (!this.Q[this.game.grid.toString()]) {
-			this.Q[this.game.grid.toString()] = [0, 0, 0, 0];
-		}
 
+	let gridString = this.game.grid.toString();
+
+	if (!this.Q[gridString]) {
+		this.Q[gridString] = [0, 0, 0, 0];
+	}
+
+	for (let action = 0; action < 4; action++) {
 		let next = this.precalc(action);
 
-		console.log(next);
-
-		let qValue = this.reward(next);
+		let qValue = this.Q[gridString][action];
+		qValue += this.reward(next);
 		qValue += this.gamma * this.maxQ(next.grid);
-		this.Q[this.game.grid.toString()][action] = qValue;
-
-		console.log(qValue);
+		this.Q[gridString][action] = qValue;
 
 		if (bestQ == -1 || qValue > bestQ) {
 			best = action;
@@ -154,7 +131,7 @@ Agent.prototype.precalc = function(action) {
 Agent.prototype.reward = function(game) {
 	if (!game.moved)
 		return -1;
-	return .6 * (game.score - this.game.score) + this.bestTile(game.grid.cells);
+	return .6 * (game.score - this.game.score) + this.bestTile(game.grid.cells) - this.bestTile(this.game.grid.cells);
 };
 
 Agent.prototype.maxQ = function(grid) {
